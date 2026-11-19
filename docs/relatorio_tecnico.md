@@ -199,9 +199,6 @@ Teste 5 (fila recuperada da Flash)
 Teste 6 (memória e desempenho no Serial)
 ![Teste 6](prints/teste6_desempenho.png)
 
-Teste 7 (funcionando sem Wi-Fi)
-![Teste 7](prints/teste7_offline.png)
-
 ## 9. O que daria para melhorar
 
 Usar um broker com senha e criptografia, treinar a IA com dados reais de um mutirão, ter mais de um guichê e senhas individuais para cada pessoa saber a sua posição, e avisar o cidadão quando faltar pouco para a vez dele.

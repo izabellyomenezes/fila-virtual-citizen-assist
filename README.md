@@ -17,7 +17,7 @@ Um ESP32 conta quem chega (botão verde) e quem foi atendido (botão vermelho), 
 É um projeto acadêmico, não é um canal oficial. Os dados usados para treinar a IA são simulados.
 
 - Simulação no Wokwi: https://wokwi.com/projects/480894213359412225
-- Vídeo de demonstração: 
+- Vídeo de demonstração: https://youtu.be/YNHptjB_7PQ?si=d5jzelq43oxGivOz
 - Relatório técnico (com os testes): [docs/relatorio_tecnico.md](docs/relatorio_tecnico.md)
 - Diagrama de arquitetura: [docs/diagrama_arquitetura.md](docs/diagrama_arquitetura.md)
 

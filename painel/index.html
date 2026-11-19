@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fila Virtual - Citizen Assist AI</title>
+
+  <!-- biblioteca MQTT para o navegador -->
+  <script src="https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js"></script>
+
+  <style>
+    /* fundo escuro e texto claro para ter bom contraste */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 20px;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+    header {
+      background: #1e3a8a;
+      padding: 16px;
+      text-align: center;
+    }
+    header h1 { margin: 0; font-size: 28px; }
+    header p  { margin: 6px 0 0; font-size: 18px; color: #dbeafe; }
+
+    main { max-width: 1000px; margin: 0 auto; padding: 16px; }
+
+    /* os cartões se ajustam à largura da tela (funciona no celular) */
+    .cartoes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .cartao {
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .cartao .titulo { font-size: 20px; color: #cbd5e1; }
+    .cartao .valor  { font-size: 56px; font-weight: bold; margin-top: 8px; }
+    .cartao .valor.menor { font-size: 32px; }
+    .destaque { border-color: #facc15; }
+    .destaque .valor { color: #facc15; }
+
+    .conectado    { color: #4ade80; }
+    .desconectado { color: #f87171; }
+
+    /* lista de eventos, com uma cor para cada tipo */
+    h2 { margin-top: 28px; }
+    #lista-eventos { list-style: none; padding: 0; margin: 0; }
+    #lista-eventos li {
+      background: #1e293b;
+      border-left: 8px solid #64748b;
+      margin-bottom: 8px;
+      padding: 10px 12px;
+      border-radius: 6px;
+    }
+    #lista-eventos li.ENTRADA { border-left-color: #4ade80; }
+    #lista-eventos li.SAIDA   { border-left-color: #60a5fa; }
+    #lista-eventos li.ERRO    { border-left-color: #f87171; }
+    #lista-eventos li.ZERAR   { border-left-color: #facc15; }
+
+    footer {
+      text-align: center;
+      padding: 20px 16px;
+      font-size: 18px;
+      color: #fde68a;
+      border-top: 1px solid #334155;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Fila Virtual - Mutirão de Documentos</h1>
+    <p>Citizen Assist AI · Segunda via para atingidos pelas enchentes no RS</p>
+  </header>
+
+  <main>
+    <div class="cartoes">
+      <div class="cartao destaque">
+        <div class="titulo">Pessoas na fila</div>
+        <div class="valor" id="fila">--</div>
+      </div>
+      <div class="cartao destaque">
+        <div class="titulo">Espera estimada (IA)</div>
+        <div class="valor" id="espera-ia">--</div>
+      </div>
+      <div class="cartao">
+        <div class="titulo">Estimativa convencional (média)</div>
+        <div class="valor" id="espera-media">--</div>
+      </div>
+      <div class="cartao">
+        <div class="titulo">Atendimentos concluídos</div>
+        <div class="valor" id="atendidos">--</div>
+      </div>
+      <div class="cartao">
+        <div class="titulo">Última atualização</div>
+        <div class="valor menor" id="atualizacao">--</div>
+      </div>
+      <div class="cartao">
+        <div class="titulo">Status</div>
+        <div class="valor menor desconectado" id="status">Desconectado</div>
+      </div>
+    </div>
+
+    <h2>Últimos 10 eventos</h2>
+    <ul id="lista-eventos">
+      <li>Aguardando dados...</li>
+    </ul>
+  </main>
+
+  <footer>
+    Protótipo acadêmico, não é canal oficial.
+  </footer>
+
+  <script>
+    // O navegador não usa a porta 1883, então usamos WebSocket seguro
+    const BROKER = "wss://broker.hivemq.com:8884/mqtt";
+
+    // Tem que ser igual ao MQTT_TOPICO do wokwi/sketch.ino
+    const TOPICO = "citizenassist/fila/gs2026-1ccfev-x7k3";
+
+    let eventos = [];
+    let chaveAnterior = "";  // para não repetir o mesmo evento na lista
+
+    // Conexão com o broker
+    const cliente = mqtt.connect(BROKER, {
+      clientId: "painel-" + Math.floor(Math.random() * 100000)
+    });
+
+    cliente.on("connect", function () {
+      mostrarStatus(true);
+      cliente.subscribe(TOPICO);
+    });
+
+    cliente.on("close", function () {
+      mostrarStatus(false);
+    });
+
+    // chegou mensagem do ESP32
+    cliente.on("message", function (topico, mensagem) {
+      let dados;
+      try {
+        dados = JSON.parse(mensagem.toString());
+      } catch (erro) {
+        console.log("Mensagem inválida:", mensagem.toString());
+        return;
+      }
+      atualizarCartoes(dados);
+      adicionarEvento(dados);
+    });
+
+    // Funções da tela
+    function mostrarStatus(conectado) {
+      const elemento = document.getElementById("status");
+      if (conectado) {
+        elemento.textContent = "Conectado";
+        elemento.className = "valor menor conectado";
+      } else {
+        elemento.textContent = "Desconectado";
+        elemento.className = "valor menor desconectado";
+      }
+    }
+
+    function atualizarCartoes(dados) {
+      document.getElementById("fila").textContent = dados.fila;
+      document.getElementById("espera-ia").textContent = Math.round(dados.espera_ia_min) + " min";
+      document.getElementById("espera-media").textContent = Math.round(dados.espera_media_min) + " min";
+      document.getElementById("atendidos").textContent = dados.atendidos;
+      // horário em que o navegador recebeu a mensagem
+      document.getElementById("atualizacao").textContent = new Date().toLocaleTimeString("pt-BR");
+    }
+
+    function adicionarEvento(dados) {
+      // O ESP32 publica a cada 10 s mesmo sem evento novo, então só
+      // adicionamos se a chave mudar. Fila e atendidos entram na chave
+      // para não perder dois eventos no mesmo segundo.
+      const chave = dados.ultimo_evento + "|" + dados.horario + "|" + dados.fila + "|" + dados.atendidos;
+      if (chave === chaveAnterior || dados.ultimo_evento === "INICIO") {
+        return;
+      }
+      chaveAnterior = chave;
+
+      eventos.unshift(dados);
+      if (eventos.length > 10) {
+        eventos.pop();   // fica só com os 10 mais recentes
+      }
+      desenharLista();
+    }
+
+    function desenharLista() {
+      const lista = document.getElementById("lista-eventos");
+      lista.innerHTML = "";
+      for (let i = 0; i < eventos.length; i++) {
+        const e = eventos[i];
+        const item = document.createElement("li");
+        item.className = e.ultimo_evento;
+        item.textContent = e.horario + " - " + e.ultimo_evento + " - fila: " + e.fila;
+        lista.appendChild(item);
+      }
+    }
+  </script>
+</body>
+</html>

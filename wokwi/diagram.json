@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "author": "Grupo Citizen Assist AI",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-pushbutton", "id": "btnVerde", "top": 220, "left": -170, "attrs": { "color": "green", "label": "CHEGOU", "key": "1" } },
+    { "type": "wokwi-pushbutton", "id": "btnVermelho", "top": 300, "left": -170, "attrs": { "color": "red", "label": "ATENDIDO", "key": "2" } },
+    { "type": "wokwi-lcd1602", "id": "lcd", "top": -160, "left": 160, "attrs": { "pins": "i2c", "i2cAddress": "0x27" } },
+    { "type": "wokwi-resistor", "id": "r1", "top": 140, "left": 200, "attrs": { "value": "220" } },
+    { "type": "wokwi-led", "id": "ledErro", "top": 90, "left": 300, "attrs": { "color": "red", "label": "ERRO" } }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "btnVerde:1.l", "esp:GND.1", "black", [ "h0" ] ],
+    [ "btnVerde:2.r", "esp:18", "green", [ "h0" ] ],
+    [ "btnVermelho:1.l", "esp:GND.1", "black", [ "h0" ] ],
+    [ "btnVermelho:2.r", "esp:19", "red", [ "h0" ] ],
+    [ "lcd:GND", "esp:GND.2", "black", [ "h0" ] ],
+    [ "lcd:VCC", "esp:5V", "red", [ "h0" ] ],
+    [ "lcd:SDA", "esp:21", "blue", [ "h0" ] ],
+    [ "lcd:SCL", "esp:22", "purple", [ "h0" ] ],
+    [ "esp:2", "r1:1", "orange", [ "h0" ] ],
+    [ "r1:2", "ledErro:A", "orange", [ "h0" ] ],
+    [ "ledErro:C", "esp:GND.3", "black", [ "h0" ] ]
+  ],
+  "dependencies": {}
+}

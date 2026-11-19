@@ -88,12 +88,12 @@ E estes são os valores que o próprio ESP32 mostrou no Serial:
 
 | Medida | Valor |
 |---|---|
-| Heap total | 320.552 bytes |
-| Heap livre | 219.320 bytes |
+| Heap total | 320.544 bytes |
+| Heap livre | 219.344 bytes |
 | Flash | 4.194.304 bytes (4 MB) |
 | Tamanho do programa | 961.760 bytes |
 
-O heap usado é de 101.232 bytes, bem mais que os nossos 854 bytes (cerca de 0,27% do heap). Quase tudo vem das bibliotecas de Wi-Fi, TCP/IP e MQTT. O programa ocupa uns 23% da Flash, e a maior parte também é biblioteca. O Wokwi mostrou 0 bytes de espaço livre para programa; entendemos que isso é uma limitação do simulador, que não tem a mesma divisão da Flash que a placa real.
+O heap usado é de 101.200 bytes, bem mais que os nossos 854 bytes (cerca de 0,27% do heap). Quase tudo vem das bibliotecas de Wi-Fi, TCP/IP e MQTT. O programa ocupa uns 23% da Flash, e a maior parte também é biblioteca. O Wokwi mostrou 0 bytes de espaço livre para programa; entendemos que isso é uma limitação do simulador, que não tem a mesma divisão da Flash que a placa real.
 
 Sobre a hierarquia de memória: os registradores e a cache são os mais rápidos e menores, depois vem a SRAM (onde ficam as variáveis) e por último a Flash, que é a mais lenta, mas não perde os dados sem energia. No nosso projeto a Flash faz o papel de memória secundária, como um HD ou SSD faria num computador. A diferença é que ela não tem partes móveis, como o SSD, e é bem menor. Ela também aguenta um número limitado de gravações; gravar a cada clique serve para o protótipo, mas num uso real seria melhor gravar de tempos em tempos.
 
@@ -130,9 +130,9 @@ O programa mede o tempo com `micros()`. Valores do Wokwi:
 | Medida | Valor |
 |---|---|
 | Clock | 240 MHz (período de 1 ÷ 240.000.000 ≈ 4,17 ns) |
-| Tempo da `esperaIA()` | entre 332 e 350 µs (ex.: 334,614 µs ≈ 80.307 ciclos) |
+| Tempo da `esperaIA()` | entre 330 e 350 µs (ex.: 330,252 µs ≈ 79.260 ciclos) | 
 | Voltas do `loop()` sem Wi-Fi | cerca de 17.837 a 18.043 por segundo (≈ 56 µs por volta) |
-| Voltas do `loop()` com Wi-Fi e MQTT | cerca de 1.423 a 1.675 por segundo (≈ 600 µs por volta) |
+| Voltas do `loop()` com Wi-Fi e MQTT | cerca de 1.409 a 1.675 por segundo (≈ 600 µs por volta) |
 
 Achamos estranho a `esperaIA()` demorar 80 mil ciclos para uma conta simples. A maior parte desse tempo é a conversão do horário (`localtime_r`) para saber se é horário de pico, não a conta em si. Além disso, o simulador é mais lento que a placa de verdade.
 
